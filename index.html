@@ -1,0 +1,2007 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280">
+<title>hosq · curator workspace</title>
+
+<style>
+/* ===== HOSQ brand fonts ===== */
+@font-face {
+  font-family: "Cera Pro";
+  src: url("fonts/CeraPro-Regular.woff") format("woff");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Cera Pro";
+  src: url("fonts/CeraPro-Medium.woff") format("woff");
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Cera Pro";
+  src: url("fonts/CeraPro-Bold.woff") format("woff");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+
+/* ===== HOSQ design tokens ===== */
+:root {
+  --hosq-coral:   #FF6F55;
+  --hosq-violet:  #C47CF1;
+  --hosq-green:   #14B672;
+  --hosq-blue:    #56A4CB;
+  --hosq-pink:    #E770C3;
+  --hosq-dark:    #231F20;
+  --hosq-cream:   #EBE2D6;
+  --hosq-blush:   #E8DCD4;
+  --hosq-paper:   #F5EFE7;       /* lighter cream for surfaces */
+  --hosq-ink-2:   #6B6566;       /* secondary text */
+  --hosq-ink-3:   #9A9596;       /* tertiary, never primary */
+  --hosq-line:    rgba(35,31,32,0.10);
+  --hosq-line-2:  rgba(35,31,32,0.18);
+  --hosq-good:    #14B672;
+  --hosq-warn:    #E0A23A;
+  --hosq-bad:     #D8553F;
+
+  --font-sans: "Cera Pro", -apple-system, "DM Sans", system-ui, sans-serif;
+}
+
+/* ===== reset ===== */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--hosq-dark);
+  background: var(--hosq-cream);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; padding: 0; }
+input, textarea { font-family: inherit; }
+
+/* ===== top bar ===== */
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+  padding: 0 24px;
+  background: var(--hosq-cream);
+  border-bottom: 1px solid var(--hosq-line);
+}
+.brand {
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  color: var(--hosq-dark);
+  text-transform: lowercase;
+  display: flex; align-items: center; gap: 10px;
+}
+.brand::after {
+  content: "curator workspace";
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hosq-ink-2);
+  padding: 3px 8px;
+  border: 1px solid var(--hosq-line-2);
+  border-radius: 999px;
+}
+
+/* tabs */
+.tabs {
+  display: flex; align-items: center; gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--hosq-ink-2);
+  white-space: nowrap;
+  transition: background .15s, color .15s;
+}
+.tab:hover { background: rgba(35,31,32,0.06); color: var(--hosq-dark); }
+.tab.is-active {
+  background: var(--hosq-dark);
+  color: var(--hosq-cream);
+}
+.tab .dot {
+  width: 6px; height: 6px; border-radius: 999px;
+  background: var(--hosq-ink-3);
+}
+.tab.is-active .dot { background: var(--hosq-coral); }
+.tab .score-mini {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+.tab-close {
+  margin-left: 2px;
+  width: 16px; height: 16px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px;
+  opacity: 0.5;
+  font-size: 14px;
+  line-height: 1;
+}
+.tab-close:hover { opacity: 1; background: rgba(255,255,255,0.15); }
+.tab-add {
+  width: 28px; height: 28px;
+  border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  color: var(--hosq-ink-2);
+}
+.tab-add:hover { background: rgba(35,31,32,0.06); color: var(--hosq-dark); }
+
+/* mode toggle */
+.mode-toggle {
+  display: inline-flex;
+  background: rgba(35,31,32,0.06);
+  border-radius: 999px;
+  padding: 3px;
+  position: relative;
+}
+.mode-toggle button {
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: 999px;
+  color: var(--hosq-ink-2);
+  position: relative;
+  z-index: 1;
+  transition: color .2s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.mode-toggle button.is-active { color: var(--hosq-cream); }
+.mode-toggle .glider {
+  position: absolute;
+  top: 3px; bottom: 3px;
+  background: var(--hosq-dark);
+  border-radius: 999px;
+  transition: left .25s cubic-bezier(.4,0,.2,1), width .25s cubic-bezier(.4,0,.2,1);
+  z-index: 0;
+}
+
+/* user / cmdk */
+.topbar-end { display: flex; align-items: center; gap: 12px; }
+.cmdk {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--hosq-line-2);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--hosq-ink-2);
+}
+.kbd {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(35,31,32,0.08);
+}
+.avatar {
+  width: 32px; height: 32px;
+  border-radius: 999px;
+  background: var(--hosq-violet);
+  color: white;
+  font-weight: 700;
+  font-size: 13px;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+/* ===== app shell ===== */
+.shell {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) var(--right-w, 380px);
+  min-height: calc(100vh - 56px);
+}
+body.mode-scoring .shell { --right-w: 440px; }
+
+/* ===== left outline ===== */
+.outline {
+  position: sticky; top: 56px;
+  align-self: start;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  padding: 28px 20px 40px;
+  border-right: 1px solid var(--hosq-line);
+}
+.outline-head {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hosq-ink-2);
+  margin-bottom: 14px;
+}
+.outline-list {
+  display: flex; flex-direction: column;
+  gap: 1px;
+}
+.outline-row {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--hosq-dark);
+  text-align: left;
+  width: 100%;
+  transition: background .12s;
+}
+.outline-row:hover { background: rgba(35,31,32,0.05); }
+.outline-row.is-active {
+  background: rgba(35,31,32,0.10);
+  font-weight: 500;
+}
+.outline-row .num {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--hosq-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.outline-row .label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* writing-mode dots */
+.dot-state { width: 8px; height: 8px; border-radius: 999px; flex-shrink: 0; }
+.dot-state.full     { background: var(--hosq-dark); }
+.dot-state.partial  { background: transparent; border: 2px solid var(--hosq-dark); }
+.dot-state.empty    { background: transparent; border: 1.5px solid var(--hosq-line-2); }
+
+/* scoring-mode bars */
+.bar-state {
+  width: 36px; height: 4px;
+  border-radius: 999px;
+  background: var(--hosq-line);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.bar-state .fill {
+  display: block; height: 100%;
+  background: var(--hosq-dark);
+  border-radius: 999px;
+}
+
+.outline-foot {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--hosq-line);
+  font-size: 12px;
+  color: var(--hosq-ink-2);
+}
+.outline-foot .progress-num {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--hosq-dark);
+  font-variant-numeric: tabular-nums;
+  display: block;
+  margin-bottom: 2px;
+}
+.outline-foot .progress-bar {
+  height: 4px;
+  background: var(--hosq-line);
+  border-radius: 999px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+.outline-foot .progress-bar .fill {
+  display: block; height: 100%;
+  background: var(--hosq-dark);
+  border-radius: 999px;
+  transition: width .4s;
+}
+
+/* ===== center document ===== */
+.doc {
+  padding: 40px 64px 120px;
+  max-width: 820px;
+  margin: 0 auto;
+  width: 100%;
+}
+.doc-header {
+  margin-bottom: 36px;
+}
+.doc-eyebrow {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hosq-ink-2);
+}
+.doc-eyebrow .pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--hosq-paper);
+  color: var(--hosq-dark);
+  font-weight: 600;
+}
+.doc-title {
+  font-weight: 700;
+  font-size: 38px;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  margin: 0 0 8px;
+}
+.doc-subtitle {
+  font-size: 15px;
+  color: var(--hosq-ink-2);
+  margin: 0;
+}
+
+/* phase block */
+.phase {
+  margin-top: 56px;
+  scroll-margin-top: 80px;
+}
+.phase-head {
+  display: flex; align-items: baseline; gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--hosq-line);
+  margin-bottom: 22px;
+}
+.phase-num {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hosq-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.phase-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+/* field row */
+.field {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 24px;
+  padding: 14px 0;
+  align-items: baseline;
+}
+.field + .field {
+  border-top: 1px solid var(--hosq-line);
+}
+.field-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--hosq-ink-2);
+  display: flex; align-items: center; gap: 6px;
+  padding-top: 2px;
+}
+.field-label .req {
+  color: var(--hosq-coral);
+  font-size: 10px;
+  font-weight: 700;
+}
+.field-value {
+  font-size: 15px;
+  color: var(--hosq-dark);
+}
+.field-value.long {
+  line-height: 1.6;
+}
+.field-value p { margin: 0 0 12px; }
+.field-value p:last-child { margin-bottom: 0; }
+
+/* editable styling */
+.editable {
+  padding: 6px 8px;
+  margin: -6px -8px;
+  border-radius: 6px;
+  outline: none;
+  transition: background .12s, box-shadow .12s;
+  cursor: text;
+}
+.editable:hover { background: rgba(35,31,32,0.03); }
+.editable:focus {
+  background: var(--hosq-paper);
+  box-shadow: inset 0 0 0 1px var(--hosq-line-2);
+}
+
+/* paragraph selection state */
+.editable.para {
+  position: relative;
+}
+.editable.para.is-selected {
+  background: rgba(255,111,85,0.10);
+  box-shadow: inset 0 0 0 1px rgba(255,111,85,0.35);
+}
+/* drives-vector highlight (scoring drill) */
+.editable.is-related {
+  background: rgba(196,124,241,0.12);
+  box-shadow: inset 0 0 0 1px rgba(196,124,241,0.30);
+}
+
+/* placeholder for empty fields */
+.placeholder {
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px dashed var(--hosq-line-2);
+  border-radius: 8px;
+  color: var(--hosq-ink-3);
+  font-size: 13px;
+  font-style: italic;
+}
+.placeholder::before {
+  content: "+ ";
+  font-style: normal;
+  color: var(--hosq-coral);
+  font-weight: 700;
+  margin-right: 2px;
+}
+
+/* tag chip */
+.chip {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--hosq-paper);
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0 6px 6px 0;
+}
+.chip.coral  { background: rgba(255,111,85,0.16); color: #8a2e1c; }
+.chip.green  { background: rgba(20,182,114,0.16); color: #0a6b41; }
+.chip.violet { background: rgba(196,124,241,0.16); color: #6e2da7; }
+.chip.blue   { background: rgba(86,164,203,0.18); color: #2c627c; }
+.chip.dark   { background: var(--hosq-dark); color: var(--hosq-cream); }
+
+/* nice-to-have collapsed group */
+.nth-group {
+  margin: 14px 0;
+  padding: 10px 14px;
+  background: var(--hosq-paper);
+  border-radius: 12px;
+  font-size: 13px;
+  color: var(--hosq-ink-2);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.nth-group button {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--hosq-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* metric tag (which subindex this paragraph drives) */
+.metric-tags {
+  margin-top: 8px;
+  display: flex; flex-wrap: wrap; gap: 4px;
+  font-size: 10px;
+}
+.metric-tag {
+  display: inline-flex;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(35,31,32,0.06);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--hosq-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== right AI panel ===== */
+.ai {
+  position: sticky; top: 56px;
+  align-self: start;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  padding: 28px 24px 40px;
+  border-left: 1px solid var(--hosq-line);
+  background: var(--hosq-cream);
+}
+
+.ai-eyebrow {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hosq-ink-2);
+  margin-bottom: 16px;
+}
+.ai-eyebrow .mode-pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--hosq-dark);
+  color: var(--hosq-cream);
+}
+
+/* score block */
+.score-block {
+  background: var(--hosq-paper);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.score-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.score-num {
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.score-num .of { font-size: 18px; color: var(--hosq-ink-2); font-weight: 500; }
+.score-delta {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+.score-delta.up { background: rgba(20,182,114,0.18); color: #0a6b41; }
+.score-delta.down { background: rgba(216,85,63,0.16); color: #8a2e1c; }
+.score-delta.flat { background: rgba(35,31,32,0.08); color: var(--hosq-ink-2); }
+
+.score-meta {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12px;
+  color: var(--hosq-ink-2);
+  margin-bottom: 14px;
+}
+.score-meta .stale-dot {
+  width: 8px; height: 8px; border-radius: 999px;
+  background: var(--hosq-ink-3);
+  display: inline-block;
+}
+.score-meta.is-stale .stale-dot { background: var(--hosq-warn); }
+.score-meta.is-stale strong { color: var(--hosq-dark); }
+
+.score-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--hosq-dark);
+  color: var(--hosq-cream);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: opacity .15s, transform .1s;
+}
+.score-btn:hover { opacity: 0.92; }
+.score-btn:active { transform: translateY(1px); }
+.score-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+.score-btn.is-cooling {
+  background: var(--hosq-paper);
+  color: var(--hosq-ink-2);
+  border: 1px dashed var(--hosq-line-2);
+}
+.score-btn .recommend {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+/* writing mode: weak spots top-3 */
+.weak-list {
+  display: flex; flex-direction: column;
+  gap: 4px;
+  margin-bottom: 24px;
+}
+.weak-item {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 12px;
+  text-align: left;
+  width: 100%;
+  transition: background .12s;
+}
+.weak-item:hover { background: var(--hosq-paper); }
+.weak-item.is-active { background: var(--hosq-paper); }
+.weak-item .vcode {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--hosq-ink-2);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+.weak-item .vname {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--hosq-dark);
+}
+.weak-item .vname .sub {
+  display: block;
+  font-size: 11px;
+  color: var(--hosq-ink-2);
+  font-weight: 400;
+  margin-top: 2px;
+}
+.weak-item .vscore {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--hosq-bad);
+}
+
+.see-all {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--hosq-ink-2);
+  padding: 4px 0;
+}
+.see-all:hover { color: var(--hosq-dark); }
+
+/* coach panel (writing mode contextual) */
+.coach {
+  margin-top: 24px;
+  padding: 18px;
+  background: var(--hosq-paper);
+  border-radius: 16px;
+}
+.coach-head {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hosq-ink-2);
+  margin-bottom: 8px;
+}
+.coach-target {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.coach-meta {
+  font-size: 12px;
+  color: var(--hosq-ink-2);
+  margin-bottom: 14px;
+}
+.coach-tags {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  margin-bottom: 14px;
+}
+.coach-cta {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px;
+  background: var(--hosq-dark);
+  color: var(--hosq-cream);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.coach-cta .cost {
+  font-size: 10px;
+  opacity: 0.65;
+  font-weight: 500;
+}
+.coach-empty {
+  font-size: 13px;
+  color: var(--hosq-ink-2);
+  line-height: 1.55;
+}
+.coach-empty strong { color: var(--hosq-dark); font-weight: 500; }
+
+/* scoring mode: 10 vector cards */
+.vec-list {
+  display: flex; flex-direction: column;
+  gap: 1px;
+  background: var(--hosq-line);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.vec-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--hosq-cream);
+  padding: 14px 16px;
+  transition: background .12s;
+}
+.vec-item:hover { background: var(--hosq-paper); }
+.vec-item.is-expanded { background: var(--hosq-paper); }
+.vec-item-row {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+.vec-code {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--hosq-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.vec-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+.vec-score {
+  display: flex; align-items: center; gap: 10px;
+}
+.vec-score .num {
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 28px;
+  text-align: right;
+}
+.vec-score-bar {
+  width: 60px; height: 4px;
+  background: var(--hosq-line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.vec-score-bar .fill {
+  display: block; height: 100%;
+  border-radius: 999px;
+}
+/* color by quartile */
+.q-bad  { background: var(--hosq-bad); }
+.q-warn { background: var(--hosq-warn); }
+.q-ok   { background: var(--hosq-blue); }
+.q-good { background: var(--hosq-good); }
+.t-bad  { color: var(--hosq-bad); }
+.t-warn { color: var(--hosq-warn); }
+.t-ok   { color: var(--hosq-dark); }
+.t-good { color: var(--hosq-good); }
+
+/* stale visual: desaturate score numbers when dirty */
+.is-stale .vec-score .num,
+.is-stale .score-num {
+  color: var(--hosq-ink-3);
+}
+.is-stale .vec-score-bar .fill { opacity: 0.5; }
+
+/* drill-down subindices */
+.subs {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hosq-line);
+  display: none;
+}
+.vec-item.is-expanded .subs { display: block; }
+.sub-row {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 12px;
+}
+.sub-code {
+  color: var(--hosq-ink-2);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.sub-name {
+  color: var(--hosq-dark);
+}
+.sub-score {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.sub-narrative {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--hosq-cream);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--hosq-ink-2);
+  line-height: 1.55;
+}
+.sub-jump {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--hosq-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ===== upload / empty state ===== */
+.upload-wrap {
+  display: flex;
+  align-items: center; justify-content: center;
+  padding: 80px 24px;
+  min-height: calc(100vh - 56px);
+}
+.upload-card {
+  width: 100%;
+  max-width: 640px;
+  background: var(--hosq-paper);
+  border-radius: 24px;
+  padding: 48px;
+  text-align: center;
+}
+.upload-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hosq-ink-2);
+  margin-bottom: 12px;
+}
+.upload-title {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0 0 12px;
+}
+.upload-sub {
+  font-size: 15px;
+  color: var(--hosq-ink-2);
+  margin: 0 0 32px;
+}
+.dropzone {
+  border: 2px dashed var(--hosq-line-2);
+  border-radius: 16px;
+  padding: 40px 24px;
+  margin-bottom: 16px;
+  transition: background .15s, border-color .15s;
+}
+.dropzone:hover, .dropzone.is-drag {
+  background: var(--hosq-cream);
+  border-color: var(--hosq-coral);
+}
+.dropzone-cta {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 20px;
+  background: var(--hosq-dark);
+  color: var(--hosq-cream);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.dropzone-meta {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--hosq-ink-2);
+}
+.upload-divider {
+  display: flex; align-items: center; gap: 16px;
+  margin: 24px 0;
+  font-size: 12px;
+  color: var(--hosq-ink-3);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.upload-divider::before, .upload-divider::after {
+  content: ""; flex: 1; height: 1px; background: var(--hosq-line);
+}
+.upload-textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 16px;
+  border: 1px solid var(--hosq-line-2);
+  border-radius: 12px;
+  font-size: 14px;
+  background: var(--hosq-cream);
+  resize: vertical;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.upload-textarea:focus {
+  border-color: var(--hosq-dark);
+  box-shadow: 0 0 0 3px rgba(35,31,32,0.08);
+}
+.upload-actions {
+  display: flex; justify-content: flex-end; gap: 8px;
+  margin-top: 16px;
+}
+.btn-ghost {
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--hosq-ink-2);
+  border-radius: 999px;
+}
+.btn-ghost:hover { background: rgba(35,31,32,0.05); color: var(--hosq-dark); }
+.btn-primary {
+  padding: 10px 18px;
+  background: var(--hosq-coral);
+  color: white;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.btn-primary:hover { filter: brightness(1.05); }
+.btn-primary[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+/* ===== command palette stub ===== */
+.cmdk-overlay {
+  position: fixed; inset: 0;
+  background: rgba(35,31,32,0.35);
+  z-index: 100;
+  display: none;
+  align-items: flex-start; justify-content: center;
+  padding-top: 120px;
+}
+.cmdk-overlay.is-open { display: flex; }
+.cmdk-modal {
+  width: 100%;
+  max-width: 560px;
+  background: var(--hosq-cream);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.cmdk-input {
+  width: 100%;
+  padding: 18px 20px;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  outline: none;
+}
+.cmdk-list {
+  border-top: 1px solid var(--hosq-line);
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 6px;
+}
+.cmdk-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.cmdk-item:hover { background: var(--hosq-paper); }
+.cmdk-item .meta { margin-left: auto; font-size: 12px; color: var(--hosq-ink-2); }
+
+/* ===== hide/show by mode ===== */
+body.mode-writing .scoring-only { display: none !important; }
+body.mode-scoring .writing-only { display: none !important; }
+
+/* ===== utility ===== */
+.muted { color: var(--hosq-ink-2); }
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* hint at very bottom */
+.hint-strip {
+  position: fixed;
+  bottom: 16px; left: 50%; transform: translateX(-50%);
+  background: var(--hosq-dark);
+  color: var(--hosq-cream);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  display: none;
+  align-items: center; gap: 8px;
+  z-index: 60;
+  animation: floatIn .25s ease;
+}
+.hint-strip.is-visible { display: inline-flex; }
+@keyframes floatIn { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+</style>
+</head>
+<body class="mode-writing">
+
+<!-- ============== TOP BAR ============== -->
+<div class="topbar">
+  <div class="brand">hosq</div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="mode-toggle" id="modeToggle">
+    <button data-mode="writing" class="is-active">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      Writing
+    </button>
+    <button data-mode="scoring">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+      Scoring
+    </button>
+    <span class="glider" id="modeGlider"></span>
+  </div>
+
+  <div class="topbar-end">
+    <button class="cmdk" id="cmdkBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search
+      <span class="kbd">⌘K</span>
+    </button>
+    <div class="avatar" title="Ulyana">U</div>
+  </div>
+</div>
+
+<!-- ============== APP SHELL ============== -->
+<div class="shell" id="shell"></div>
+
+<!-- ============== COMMAND PALETTE STUB ============== -->
+<div class="cmdk-overlay" id="cmdkOverlay">
+  <div class="cmdk-modal" onclick="event.stopPropagation()">
+    <input class="cmdk-input" placeholder="Search applications, phases, vectors…" autofocus>
+    <div class="cmdk-list">
+      <div class="cmdk-item">📄 Notations Lab 2024 <span class="meta">application</span></div>
+      <div class="cmdk-item">📄 Mard Mutantar (Dark Jazz) <span class="meta">application</span></div>
+      <div class="cmdk-item">⚡ Re-score current application <span class="meta">action</span></div>
+      <div class="cmdk-item">🔀 Switch to Scoring mode <span class="meta">action</span></div>
+      <div class="cmdk-item">📍 Jump to phase 13 · Economy <span class="meta">phase</span></div>
+      <div class="cmdk-item">🧭 Vector E · Heritage &amp; Environment <span class="meta">vector</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="hint-strip" id="hintStrip"></div>
+
+<script>
+/* ===========================================================
+   MOCK DATA
+   =========================================================== */
+
+const VECTORS = [
+  { code: "A", name: "Cultural Vitality" },
+  { code: "B", name: "Creative Economy" },
+  { code: "C", name: "Social Inclusion" },
+  { code: "D", name: "Artistic Quality" },
+  { code: "E", name: "Heritage & Environment" },
+  { code: "F", name: "Digitality" },
+  { code: "G", name: "Internationality" },
+  { code: "H", name: "Capacity Building" },
+  { code: "I", name: "Participation" },
+  { code: "J", name: "Resonance" },
+];
+
+const SUBINDICES = {
+  A: [["A1","Thematic relevance"],["A2","Cultural originality"],["A3","Local cultural fabric"],["A4","Depth of artistic research"]],
+  B: [["B1","Economic sustainability"],["B2","Jobs / employment potential"],["B3","Creative value chain integration"],["B4","Financial innovation"]],
+  C: [["C1","Marginalized voices representation"],["C2","Accessibility for broad audiences"],["C3","Community engagement mechanisms"],["C4","Multilingualism / multiculturality"]],
+  D: [["D1","Curatorial / artistic concept"],["D2","Team competence"],["D3","Contemporary art forms"],["D4","Critical potential"]],
+  E: [["E1","Intangible heritage"],["E2","Place meaningfulness"],["E3","Environmental sensitivity"]],
+  F: [["F1","Digital representation format"],["F2","Technological innovation"],["F3","Digital accessibility"],["F4","Data / interactivity"]],
+  G: [["G1","International partners"],["G2","Cultures represented"],["G3","Cross-cultural exchange depth"],["G4","Transferability"]],
+  H: [["H1","Educational component"],["H2","Skills transferred"],["H3","Institutional relationships"],["H4","Ecosystem sustainability"]],
+  I: [["I1","Audience engagement level"],["I2","Public dialogue depth"],["I3","Process transparency"],["I4","Inclusivity of formats"]],
+  J: [["J1","Media potential"],["J2","Reputational value"],["J3","Risk of misunderstanding / scandal"],["J4","Post-effect / continuation"]],
+};
+
+/* ----- Application: Notations Lab 2024 ----- */
+const NOTATIONS = {
+  id: "notations-lab-2024",
+  title: "Notations Lab 2024",
+  subtitle: "Yerevan · 12–18 May · Festival",
+  status: "completed",
+  completion: 64,
+  score: 73,
+  prevScore: 69,
+  vectorScores: { A: 82, B: 64, C: 75, D: 80, E: 55, F: 71, G: 79, H: 72, I: 76, J: 68 },
+  subScores: {
+    A1: 88, A2: 80, A3: 82, A4: 70,
+    B1: 72, B2: 66, B3: 60, B4: 58,
+    C1: 70, C2: 80, C3: 78, C4: 72,
+    D1: 84, D2: 82, D3: 78, D4: 76,
+    E1: 60, E2: 70, E3: 35,
+    F1: 78, F2: 65, F3: 74, F4: 67,
+    G1: 80, G2: 84, G3: 76, G4: 76,
+    H1: 76, H2: 74, H3: 70, H4: 68,
+    I1: 80, I2: 74, I3: 76, I4: 74,
+    J1: 72, J2: 76, J3: 60, J4: 64,
+  },
+  subNarratives: {
+    A4: "Research process is referenced (notation, improvisation lineage) but methods are vague — no documented sources, no described steps, no artefacts produced from the inquiry. Add 2–3 concrete research artefacts and the methodology used to produce them.",
+    B4: "Funding model = traditional grant + ticket revenue. No novel mechanisms (revenue share with artists, cooperative model, micro-patronage, NFT, sliding-scale). Mention any experimental financing — even small.",
+    E3: "Environmental footprint is not addressed at all. Travel, materials, venue energy use, waste handling — none of it appears in the application. This is the single largest score depressor.",
+    J3: "No mention of how potentially controversial themes (improvisation as critique, cross-cultural appropriation risk) were handled with audiences. Add a paragraph on framing and preparedness.",
+  },
+  /* paragraphs are mapped to subindex codes via data-metrics */
+  /* note: dirtySinceScore counts paragraph edits since last [Score] */
+  dirtySinceScore: 12,
+  lastScoreMinutesAgo: 18,
+};
+
+/* ----- Application: Mard Mutantar ----- */
+const MARD = {
+  id: "mard-mutantar",
+  title: "Mard Mutantar (Dark Jazz Series)",
+  subtitle: "Yerevan + Tbilisi · Sep 2024 – Mar 2025 · Concert series",
+  status: "ongoing",
+  completion: 48,
+  score: 68,
+  prevScore: 68,
+  vectorScores: { A: 78, B: 60, C: 70, D: 78, E: 62, F: 64, G: 72, H: 66, I: 70, J: 72 },
+  subScores: { A1: 80, A2: 76, A3: 78, A4: 72, B1: 64, B2: 60, B3: 58, B4: 56, C1: 68, C2: 72, C3: 70, C4: 68, D1: 80, D2: 80, D3: 76, D4: 76, E1: 70, E2: 64, E3: 50, F1: 70, F2: 60, F3: 66, F4: 58, G1: 72, G2: 76, G3: 70, G4: 68, H1: 68, H2: 66, H3: 64, H4: 62, I1: 74, I2: 70, I3: 68, I4: 68, J1: 76, J2: 74, J3: 64, J4: 70 },
+  subNarratives: {},
+  dirtySinceScore: 0,
+  lastScoreMinutesAgo: 145,
+};
+
+/* ----- Empty / new application slot ----- */
+const NEW_APP = { id: "new", title: "Untitled", isNew: true };
+
+const APPS = [NOTATIONS, MARD, NEW_APP];
+
+/* ----- Document body for Notations Lab (used for both apps; Mard is a thin variant) -----
+   Each phase = block of fields. Long-text fields render as <p class="editable para" data-metrics="..."> so paragraph
+   selection + drill-down highlighting can attach. */
+
+function notationsContent() {
+  return [
+    {
+      n: 1, title: "Project card", fields: [
+        { label: "Title",       req: true,  value: { kind: "inline", text: "Notations Lab 2024" } },
+        { label: "Type",        req: true,  value: { kind: "chip", text: "festival" } },
+        { label: "Edition year",req: true,  value: { kind: "inline", text: "2024" } },
+        { label: "Status",      req: true,  value: { kind: "chip", text: "completed", variant: "green" } },
+        { label: "hosq stream", req: true,  value: { kind: "chip", text: "music", variant: "violet" } },
+        { label: "Format tags", req: true,  value: { kind: "chips", items: [["improvisation","coral"],["contemporary","blue"],["lab","violet"]] } },
+        { label: "Project URL", req: true,  value: { kind: "inline", text: "hosq.co/notations-lab-2024" } },
+      ]
+    },
+    {
+      n: 2, title: "When", fields: [
+        { label: "Start date", req: true, value: { kind: "inline", text: "2024-05-12" } },
+        { label: "End date",   req: true, value: { kind: "inline", text: "2024-05-18" } },
+        { label: "Duration (days)", value: { kind: "inline", text: "7", muted: "auto-computed" } },
+      ]
+    },
+    {
+      n: 3, title: "Where", fields: [
+        { label: "Primary city",    req: true, value: { kind: "inline", text: "Yerevan" } },
+        { label: "Primary country", req: true, value: { kind: "inline", text: "Armenia" } },
+        { label: "Primary venue",   req: true, value: { kind: "inline", text: "Mirzoyan Library" } },
+        { label: "Venue type",      req: true, value: { kind: "chip", text: "mixed", variant: "blue" } },
+      ]
+    },
+    {
+      n: 4, title: "Numbers", fields: [
+        { label: "Team size (total)",         req: true, value: { kind: "inline", text: "18" } },
+        { label: "Participants (on-site)",    req: true, value: { kind: "inline", text: "24" } },
+        { label: "International partners",    req: true, value: { kind: "inline", text: "6" } },
+        { label: "Local partners",            req: true, value: { kind: "inline", text: "4" } },
+        { label: "Jobs created",              req: true, value: { kind: "inline", text: "12" } },
+        { label: "Jobs paid",                 req: true, value: { kind: "inline", text: "8" } },
+        { label: "Budget total (USD)",        req: true, value: { kind: "inline", text: "42,000" } },
+      ]
+    },
+    {
+      n: 5, title: "Brief", fields: [
+        { label: "Short description", req: true, value: { kind: "para", metrics: ["A1"], text: "A weeklong gathering of improvisers, composers and listeners exploring graphical notation as a shared language." } },
+        { label: "Target audience", req: true, value: { kind: "para", metrics: ["A1","C1","I1"], text: "Practising musicians, composers, and curious listeners across the South Caucasus and partnering European scenes; deliberately mixed in age and discipline." } },
+      ]
+    },
+    {
+      n: 6, title: "Essence", fields: [
+        { label: "Full description", req: true, value: {
+            kind: "paras", paras: [
+              { metrics: ["A1","A2"], text: "Notations Lab is a seven-day intensive in Yerevan that treats graphic notation not as a curiosity from the 1960s but as a living tool for improvising ensembles. Each day pairs a morning workshop with an evening concert: artists who arrive as strangers leave as a working ensemble." },
+              { metrics: ["A2","D1"], text: "The 2024 edition focused on the question of how notation travels — across instruments, across cultures, and across the gap between composer and player. We worked with scores by Yerevanian, Tbilisian and Berlin-based artists in deliberate cross-pollination." },
+            ]
+        }},
+        { label: "Curatorial concept", req: true, value: { kind: "para", metrics: ["A4","D1"], text: "We frame the lab around three propositions: (1) notation is a contract between strangers; (2) the score is alive only in the room where it sounds; (3) every reading is a translation. These propositions are not arguments — they are starting positions for the week's work." } },
+        { label: "Artistic research questions", req: true, value: { kind: "para", metrics: ["A4","D1"], text: "How does graphic notation behave when read by performers who do not share a verbal language? What happens to the score in the third hour of an improvisation? Can a notation system designed in Berlin in 1968 still organise musical attention in Yerevan in 2024?" } },
+      ]
+    },
+    {
+      n: 7, title: "Team", fields: [
+        { label: "Team leads", req: true, value: { kind: "chips", items: [["Anna Sahakyan",""],["Mikael Voskanyan",""],["Tigran Movsesian",""]] } },
+        { label: "Disciplines", req: true, value: { kind: "chips", items: [["composition","blue"],["improvisation","coral"],["sound art","violet"],["curation",""]] } },
+        { label: "Mentors count", value: { kind: "inline", text: "4" } },
+        { label: "Team competence", req: true, value: { kind: "para", metrics: ["D2"], text: "The three curators have led ensembles in Yerevan, Berlin and New York. Sahakyan curated four editions of the Tigran Mansurian festival; Voskanyan teaches at the Komitas Conservatory; Movsesian runs the Mirzoyan listening series. Mentors include Magda Mayas (DE), Burkhard Beins (DE), and Ani Khachikyan (AM)." } },
+      ]
+    },
+    {
+      n: 8, title: "Partners & ties", fields: [
+        { label: "Partners summary", req: true, value: { kind: "para", metrics: ["G1","A3","H3"], text: "Mirzoyan Library (AM, venue + co-host), Komitas Conservatory (AM, residency framework), Echtzeitmusik Berlin (DE, mentor exchange), Tbilisi State Conservatoire (GE, score archive access), Goethe-Institut Armenien (DE/AM, funding partner), Cafe OTO (UK, programming intel)." } },
+        { label: "MOUs / agreements", value: { kind: "chips", items: [["Mirzoyan Library 2024–2026","green"],["Goethe-Institut LoC",""]] } },
+        { label: "Community partners", value: { kind: "chips", items: [["Yerevan Composers' Union",""],["Tumo Center",""]] } },
+        { label: "Internationality", req: true, value: { kind: "para", metrics: ["G1","G2","G3","G4"], text: "Internationality runs along three axes: formal partnerships with three European institutions; mobility of 9 artists from 5 countries (AM, GE, DE, UK, NL); and embedded cross-cultural identities in the local team itself, half of whom hold dual nationality. Transferability is moderate — the lab's format is portable but depends on a venue with strong listening culture." } },
+        { label: "Co-productions", value: { kind: "chips", items: [["Mirzoyan × Echtzeitmusik :: Score Translation Sessions",""],["Komitas × Tbilisi State :: Open Archive Day",""]] } },
+      ]
+    },
+    {
+      n: 9, title: "Methods & engagement", fields: [
+        { label: "Methods implemented", req: true, value: { kind: "chips", items: [["workshops","coral"],["concerts","blue"],["residency","violet"],["round robin",""],["score-reading sessions",""]] } },
+        { label: "Engagement", req: true, value: { kind: "para", metrics: ["C3","D4","I2","I3"], text: "Each evening concert is followed by a 45-minute open conversation between performers and audience, moderated by a rotating curator. Participants log reflections in a shared notebook left in the venue; entries are transcribed and shared the next morning. Co-creation is structural: workshop scores are written collaboratively by participants on day 2 and performed on day 6." } },
+      ]
+    },
+    {
+      n: 10, title: "Accessibility", fields: [
+        { label: "Languages offered", req: true, value: { kind: "chips", items: [["en",""],["hy",""],["ru",""]] } },
+        { label: "Multilingual outputs", value: { kind: "chips", items: [["en :: programme",""],["hy :: workshop notes",""]] } },
+        { label: "Physical access", req: true, value: { kind: "para", metrics: ["C2","I4"], text: "Mirzoyan Library is a single-floor venue with step-free entry from Buzand Street and a wheelchair-accessible washroom. Hearing loops are not installed; we provided transcripts of all spoken introductions in advance." } },
+        { label: "Economic access", req: true, value: { kind: "para", metrics: ["C2","I4"], text: "All workshops were free for residents of Armenia. Concert tickets were sliding-scale 0–4000 AMD. Travel stipends covered 5 international participants. Per-diem of 8000 AMD/day for all selected workshop participants." } },
+        { label: "Digital access",  req: true, value: { kind: "para", metrics: ["C2","F3","I4"], text: "Live audio streams of evening concerts via Mixcloud with delay; concert programmes published as accessible PDF and plain HTML; workshop scores released under CC-BY-SA 4.0 the week after the lab closes." } },
+      ]
+    },
+    {
+      n: 11, title: "Audience & participants", fields: [
+        { label: "Audience on-site", req: true, value: { kind: "inline", text: "412" } },
+        { label: "Audience online",  req: true, value: { kind: "inline", text: "2,840 (stream + recordings, 60-day window)" } },
+        { label: "Demographics",     req: true, value: { kind: "para", metrics: ["C1"], text: "On-site audience skewed 28–45 (~62%), gender balance close to even (51% F / 47% M / 2% non-disclosed), majority Yerevan-based with ~18% travelling from Tbilisi, Berlin and other cities. Underrepresented in attendance: audiences from Armenia's regional cities — to address in 2025." } },
+        { label: "Marginalized voices", value: { kind: "placeholder", text: "Add explicit targeting strategy for underrepresented groups" } },
+      ]
+    },
+    {
+      n: 12, title: "Media & digital", fields: [
+        { label: "Digital presence URLs", value: { kind: "chips", items: [["notationslab.am",""],["mirzoyan.am/notations",""]] } },
+        { label: "YouTube",     value: { kind: "chips", items: [["youtu.be/abc123",""],["youtu.be/def456",""]] } },
+        { label: "Instagram",   value: { kind: "inline", text: "@notations.lab" } },
+        { label: "Media coverage", req: true, value: { kind: "chips", items: [["Hetq.am — feature","blue"],["Caucasus Edition — review","blue"],["The Wire (UK) — listings",""]] } },
+      ]
+    },
+    {
+      n: 13, title: "Economy", fields: [
+        { label: "Budget narrative", req: true, value: { kind: "para", metrics: ["B1"], text: "Total budget USD 42,000. Sources: hosq foundation (40%), Goethe-Institut (28%), Mirzoyan in-kind (12%), ticket and sliding-scale revenue (10%), individual donations (10%). Expense split: artist fees & travel 58%, venue & production 18%, hospitality 12%, documentation & translation 8%, contingency 4%." } },
+        { label: "Financial innovation", req: true, value: { kind: "placeholder", text: "Add novel funding mechanisms — none described yet" } },
+        { label: "Jobs / roles", value: { kind: "chips", items: [["3 curators (paid)",""],["4 mentors (paid)",""],["1 producer",""],["2 documentation (paid)",""],["1 access coord.",""],["1 stage tech (paid)",""]] } },
+        { label: "Market integration", req: true, value: { kind: "para", metrics: ["B3"], text: "Workshop-generated scores released open-access; selected recordings licensed to Mixcloud Pro and the artist's own Bandcamp pages. No retail distribution or label tie-in this edition. Two follow-up commissions agreed with Cafe OTO and Echtzeitmusik for autumn 2024." } },
+      ]
+    },
+    {
+      n: 14, title: "Outcomes", fields: [
+        { label: "Outcomes",           req: true, value: { kind: "para", metrics: ["B3","H4"], text: "Twelve new graphic scores produced and shared open-access; one ensemble (\"Three-Letter Word\") formed during the lab continued to perform after; seven artists invited to subsequent festivals abroad based on the lab; a follow-up workshop in Tbilisi was scheduled within four months of the lab closing." } },
+        { label: "Collaborations formed", req: true, value: { kind: "para", metrics: ["G3","H3"], text: "New ongoing relationships: Mirzoyan ↔ Echtzeitmusik annual exchange; Komitas Conservatory and Tbilisi State opened mutual archive access; Magda Mayas accepted role as 2025 mentor-in-residence." } },
+        { label: "Awards", value: { kind: "chips", items: [["Hetq Best Experimental Event 2024",""]] } },
+      ]
+    },
+    {
+      n: 15, title: "Heritage & place", fields: [
+        { label: "Ecosystem continuity", req: true, value: { kind: "para", metrics: ["H4"], text: "Mirzoyan Library is committing two listening evenings per month to lab alumni through 2025. Yerevan Composers' Union has agreed to host a parallel reading session each spring. The lab is now part of a small but real local infrastructure." } },
+        { label: "Post-effect / continuation", req: true, value: { kind: "para", metrics: ["J4"], text: "Notations Lab 2025 is confirmed with expanded mentor pool. A spin-off — the Tbilisi Reading Sessions — runs from October 2024. Three commissioned scores have been performed at festivals abroad since the lab closed." } },
+        { label: "Heritage engagement", req: true, value: { kind: "para", metrics: ["E1","E2"], text: "We worked with two scores by Tigran Mansurian (1970s, previously unperformed in this configuration) and revisited Avet Terterian's late notational sketches. The Mirzoyan Library itself is a cultural heritage site — the lab activates it as a working space, not a museum." } },
+        { label: "Site-specific rationale", req: true, value: { kind: "para", metrics: ["E2"], text: "Yerevan's improvising scene has long lacked a dedicated reading and rehearsal space for graphic notation. Mirzoyan's listening room is one of the few rooms in the city with both the acoustics and the cultural permission for this kind of work." } },
+      ]
+    },
+    {
+      n: 16, title: "Tech & artefacts", fields: [
+        { label: "Tech prototypes", value: { kind: "placeholder", text: "Add any technical prototypes built during the project" } },
+        { label: "R&D outputs (URLs)", value: { kind: "placeholder", text: "Add R&D output links" } },
+        { label: "Research artefacts", req: true, value: { kind: "chips", items: [["12 graphic scores (CC-BY-SA)",""],["Lab notebook transcripts (en/hy)",""],["8 evening conversation recordings",""]] } },
+        { label: "Curatorial / critical texts", value: { kind: "chips", items: [["Caucasus Edition essay",""]] } },
+        { label: "Skills transferred", req: true, value: { kind: "chips", items: [["graphic score reading",""],["ensemble improvisation",""],["concert curation",""],["score notation","violet"]] } },
+        { label: "Skills outputs (URLs)", value: { kind: "placeholder", text: "Link participant outputs (recordings, scores)" } },
+        { label: "Feedback outputs (URLs)", value: { kind: "placeholder", text: "Link audience / participant survey reports" } },
+      ]
+    },
+    {
+      n: 17, title: "Reflection & sustainability", fields: [
+        { label: "Evaluation framework", req: true, value: { kind: "para", metrics: ["I3"], text: "Three-track evaluation: (1) participant exit interviews on day 7 — 22 of 24 completed; (2) audience pulse survey at each evening concert — 188 responses; (3) curator retrospective in week 3 — written report (12 pages, internal). Quantitative outcomes are tracked against the goals stated in the application; qualitative learnings drive the 2025 brief." } },
+        { label: "Audience survey", req: true, value: { kind: "para", metrics: ["I3"], text: "Survey distributed via printed slip and QR code at each concert. Response rate 46%. Net Promoter Score 62. Top free-text themes: 'longer Q&A', 'more daytime open rehearsals', 'translation of mentor talks into Armenian'." } },
+        { label: "Risk assessment", req: true, value: { kind: "para", metrics: ["J3"], text: "Identified risks: (1) cross-cultural appropriation in score translation — addressed with explicit attribution and consent from source composers; (2) physical safety in late-evening concerts on Buzand Street — coordinated with venue staff; (3) artistic risk of failure mid-improvisation — accepted as part of the form." } },
+        { label: "Crisis preparedness", req: true, value: { kind: "para", metrics: ["J3"], text: "Standard health & safety protocol via Mirzoyan; first-aid trained staff on each evening; backup recording of all concerts in case of stream failure; legal cover via foundation umbrella policy." } },
+        { label: "Environmental", req: true, value: { kind: "placeholder", text: "Address travel, materials, energy, waste — not present in the application" } },
+        { label: "Sustainability policy URL", value: { kind: "placeholder", text: "Link to org-level sustainability policy" } },
+        { label: "Governance / timeline URL", value: { kind: "placeholder", text: "Link to governance & timeline doc" } },
+      ]
+    },
+    {
+      n: 18, title: "Meta", auto: true, fields: [
+        { label: "Artifacts attached", value: { kind: "chips", items: [["programme.pdf",""],["scores-CC.zip",""],["audio-archive.zip",""]] } },
+        { label: "Data completeness", value: { kind: "chip", text: "partial · 64%", variant: "blue" } },
+        { label: "Last updated", value: { kind: "inline", text: "2026-04-26 14:18 UTC", muted: "auto" } },
+        { label: "Schema version", value: { kind: "inline", text: "v7", muted: "auto" } },
+        { label: "Data owner", value: { kind: "inline", text: "Ulyana K." } },
+      ]
+    },
+  ];
+}
+
+/* phase fill state for outline (used by both modes) */
+function phaseFillState(phase) {
+  let total = phase.fields.length, full = 0;
+  for (const f of phase.fields) {
+    const v = f.value;
+    if (!v) continue;
+    if (v.kind === "placeholder") continue;
+    if (v.kind === "inline" && (!v.text || v.text === "")) continue;
+    if (v.kind === "chips" && (!v.items || v.items.length === 0)) continue;
+    full += 1;
+  }
+  if (full === total) return "full";
+  if (full === 0) return "empty";
+  return "partial";
+}
+
+/* phase score (avg of subindex scores driven by paragraphs in phase) for scoring-mode bars */
+function phaseScore(phase, app) {
+  const codes = new Set();
+  for (const f of phase.fields) {
+    const v = f.value;
+    if (!v) continue;
+    if (v.kind === "para" && v.metrics) v.metrics.forEach(m => codes.add(m));
+    if (v.kind === "paras") (v.paras || []).forEach(p => (p.metrics || []).forEach(m => codes.add(m)));
+  }
+  if (codes.size === 0) return null;
+  let sum = 0, n = 0;
+  for (const c of codes) {
+    if (app.subScores[c] != null) { sum += app.subScores[c]; n += 1; }
+  }
+  return n ? Math.round(sum / n) : null;
+}
+
+/* ===========================================================
+   STATE
+   =========================================================== */
+const state = {
+  mode: "writing",
+  activeAppId: NOTATIONS.id,
+  selectedParaEl: null,       // currently focused/selected paragraph (writing mode coach)
+  expandedVector: null,       // scoring mode drill-down
+  highlightedMetrics: new Set(),  // set of subindex codes highlighted in doc
+};
+
+function activeApp() { return APPS.find(a => a.id === state.activeAppId); }
+
+/* ===========================================================
+   RENDER: TABS
+   =========================================================== */
+function renderTabs() {
+  const root = document.getElementById("tabs");
+  root.innerHTML = "";
+  for (const app of APPS) {
+    const isActive = app.id === state.activeAppId;
+    const btn = document.createElement("button");
+    btn.className = "tab" + (isActive ? " is-active" : "");
+    if (app.isNew) {
+      btn.innerHTML = `<span class="dot" style="background:transparent;border:1.5px dashed currentColor"></span><span>${app.title}</span>`;
+    } else {
+      btn.innerHTML = `<span class="dot"></span><span>${app.title}</span><span class="score-mini">${app.score}</span>`;
+      const close = document.createElement("span");
+      close.className = "tab-close";
+      close.textContent = "×";
+      close.title = "Close (mock)";
+      close.onclick = (e) => { e.stopPropagation(); /* mock */ };
+      btn.appendChild(close);
+    }
+    btn.onclick = () => { state.activeAppId = app.id; renderAll(); };
+    root.appendChild(btn);
+  }
+  const add = document.createElement("button");
+  add.className = "tab-add";
+  add.textContent = "+";
+  add.title = "New application";
+  add.onclick = () => { state.activeAppId = NEW_APP.id; renderAll(); };
+  root.appendChild(add);
+}
+
+/* ===========================================================
+   RENDER: MODE TOGGLE + GLIDER
+   =========================================================== */
+function renderModeToggle() {
+  const tg = document.getElementById("modeToggle");
+  const buttons = tg.querySelectorAll("button");
+  buttons.forEach(b => {
+    b.classList.toggle("is-active", b.dataset.mode === state.mode);
+    b.onclick = () => {
+      if (state.mode === b.dataset.mode) return;
+      state.mode = b.dataset.mode;
+      document.body.classList.toggle("mode-writing", state.mode === "writing");
+      document.body.classList.toggle("mode-scoring", state.mode === "scoring");
+      // collapse vector + clear paragraph selection on mode switch (clean slate)
+      state.expandedVector = null;
+      state.selectedParaEl = null;
+      state.highlightedMetrics.clear();
+      renderAll();
+      flashHint(state.mode === "writing" ? "Writing mode — AI is quiet. Click a paragraph to ask the coach." : "Scoring mode — click a vector to drill into 39 sub-indices.");
+    };
+  });
+  positionGlider();
+}
+function positionGlider() {
+  const tg = document.getElementById("modeToggle");
+  const glider = document.getElementById("modeGlider");
+  const active = tg.querySelector("button.is-active");
+  if (!active || !glider) return;
+  glider.style.left = active.offsetLeft + "px";
+  glider.style.width = active.offsetWidth + "px";
+}
+
+/* ===========================================================
+   RENDER: SHELL (left + center + right)
+   =========================================================== */
+function renderShell() {
+  const shell = document.getElementById("shell");
+  const app = activeApp();
+
+  if (app.isNew) {
+    shell.innerHTML = renderEmptyShell();
+    wireEmptyShell();
+    return;
+  }
+
+  const phases = notationsContent();
+  shell.innerHTML = `
+    ${renderOutline(phases, app)}
+    <main class="doc">
+      ${renderDocHeader(app)}
+      ${phases.map(p => renderPhase(p)).join("")}
+    </main>
+    ${state.mode === "writing" ? renderWritingPanel(app) : renderScoringPanel(app)}
+  `;
+  wireDoc();
+  wireOutline();
+  wireScoreBtn(app);
+  if (state.mode === "scoring") wireScoringPanel(app);
+  if (state.mode === "writing") renderCoachPanel();
+}
+
+/* ----- left outline ----- */
+function renderOutline(phases, app) {
+  const headLabel = state.mode === "writing" ? "Outline" : "Outline · Scores";
+  const rows = phases.map(p => {
+    const state2 = phaseFillState(p);
+    const score = phaseScore(p, app);
+    const writingViz = `<span class="dot-state ${state2}"></span>`;
+    const scoringViz = score == null
+      ? `<span class="bar-state"></span>`
+      : `<span class="bar-state"><span class="fill" style="width:${score}%; background:${barColor(score)}"></span></span>`;
+    return `
+      <button class="outline-row" data-phase="${p.n}">
+        <span class="num">${String(p.n).padStart(2,"0")}</span>
+        <span class="label">${escapeHtml(p.title)}</span>
+        <span class="writing-only">${writingViz}</span>
+        <span class="scoring-only">${scoringViz}</span>
+      </button>
+    `;
+  }).join("");
+
+  return `
+    <aside class="outline">
+      <div class="outline-head">${headLabel}</div>
+      <div class="outline-list">${rows}</div>
+      <div class="outline-foot">
+        <span class="muted" style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;">Completion</span>
+        <span class="progress-num">${app.completion}<span style="font-size:13px;color:var(--hosq-ink-2);font-weight:500"> / 100%</span></span>
+        <div class="progress-bar"><span class="fill" style="width:${app.completion}%"></span></div>
+      </div>
+    </aside>
+  `;
+}
+
+function barColor(s) {
+  if (s >= 80) return "var(--hosq-good)";
+  if (s >= 70) return "var(--hosq-blue)";
+  if (s >= 60) return "var(--hosq-warn)";
+  return "var(--hosq-bad)";
+}
+
+/* ----- doc header ----- */
+function renderDocHeader(app) {
+  return `
+    <header class="doc-header">
+      <div class="doc-eyebrow">
+        <span class="pill">${app.status}</span>
+        <span>application · v7 schema</span>
+      </div>
+      <h1 class="doc-title">${escapeHtml(app.title)}</h1>
+      <p class="doc-subtitle">${escapeHtml(app.subtitle)}</p>
+    </header>
+  `;
+}
+
+/* ----- one phase block ----- */
+function renderPhase(p) {
+  return `
+    <section class="phase" id="phase-${p.n}">
+      <div class="phase-head">
+        <span class="phase-num">Phase ${String(p.n).padStart(2,"0")}${p.auto ? " · auto" : ""}</span>
+        <h2 class="phase-title">${escapeHtml(p.title)}</h2>
+      </div>
+      ${p.fields.map(renderField).join("")}
+    </section>
+  `;
+}
+
+function renderField(f) {
+  const v = f.value;
+  let body;
+  switch (v.kind) {
+    case "inline":
+      body = `<span class="editable" contenteditable="true">${escapeHtml(v.text)}</span>${v.muted ? ` <span class="muted" style="font-size:12px"> · ${v.muted}</span>` : ""}`;
+      break;
+    case "chip":
+      body = `<span class="chip ${v.variant || ""}">${escapeHtml(v.text)}</span>`;
+      break;
+    case "chips":
+      body = (v.items || []).map(([t, variant]) => `<span class="chip ${variant || ""}">${escapeHtml(t)}</span>`).join("") + ` <button class="chip" style="background:transparent;border:1px dashed var(--hosq-line-2);color:var(--hosq-ink-2)">+ add</button>`;
+      break;
+    case "para":
+      body = `<div class="editable para field-value long" contenteditable="true" data-metrics="${(v.metrics || []).join(',')}">${escapeHtml(v.text)}</div>`;
+      break;
+    case "paras":
+      body = (v.paras || []).map(p => `<div class="editable para field-value long" style="margin-bottom:12px" contenteditable="true" data-metrics="${(p.metrics || []).join(',')}">${escapeHtml(p.text)}</div>`).join("");
+      break;
+    case "placeholder":
+      body = `<button class="placeholder">${escapeHtml(v.text)}</button>`;
+      break;
+    default:
+      body = "";
+  }
+  return `
+    <div class="field">
+      <div class="field-label">${escapeHtml(f.label)}${f.req ? ' <span class="req">REQ</span>' : ""}</div>
+      <div class="field-value">${body}</div>
+    </div>
+  `;
+}
+
+/* ===========================================================
+   RIGHT PANEL — WRITING MODE
+   =========================================================== */
+function renderWritingPanel(app) {
+  const stale = app.dirtySinceScore > 0;
+  const weak = topWeakSpots(app, 3);
+  return `
+    <aside class="ai">
+      <div class="ai-eyebrow">
+        <span>AI · Quiet mode</span>
+        <span class="mode-pill">writing</span>
+      </div>
+
+      <div class="score-block ${stale ? "is-stale" : ""}">
+        <div class="score-row">
+          <div class="score-num tabular">${app.score}<span class="of"> / 100</span></div>
+          ${renderDelta(app)}
+        </div>
+        <div class="score-meta ${stale ? "is-stale" : ""}">
+          <span class="stale-dot"></span>
+          ${stale
+            ? `<span><strong>${app.dirtySinceScore} edits</strong> since last score · ${app.lastScoreMinutesAgo} min ago</span>`
+            : `<span>Up to date · ${app.lastScoreMinutesAgo} min ago</span>`
+          }
+        </div>
+        <button class="score-btn ${app.dirtySinceScore < 5 ? "is-cooling" : ""}" id="scoreBtn" title="${app.dirtySinceScore < 5 ? "Recent score is fresh — save your edits and re-run when you have a meaningful batch." : "Re-run scoring"}">
+          <span>${stale ? "Re-score" : "Score"}</span>
+          ${app.dirtySinceScore < 5 && stale
+            ? `<span class="recommend">· edits are minor</span>`
+            : ""}
+        </button>
+      </div>
+
+      <div class="ai-eyebrow"><span>Top weak spots</span></div>
+      <div class="weak-list">
+        ${weak.map(w => `
+          <button class="weak-item" data-vector="${w.code}">
+            <span class="vcode">${w.code}</span>
+            <span class="vname">${escapeHtml(w.name)}<span class="sub">${w.subWeak ? `${w.subWeak[0]} · ${escapeHtml(w.subWeak[1])}` : ""}</span></span>
+            <span class="vscore">${w.score}</span>
+          </button>
+        `).join("")}
+      </div>
+      <button class="see-all" id="seeAllBtn">See all 10 vectors →</button>
+
+      <div class="coach" id="coach"></div>
+    </aside>
+  `;
+}
+
+function renderDelta(app) {
+  const d = app.score - app.prevScore;
+  if (d === 0) return `<span class="score-delta flat">— no change</span>`;
+  if (d > 0)  return `<span class="score-delta up">▲ ${d}</span>`;
+  return `<span class="score-delta down">▼ ${Math.abs(d)}</span>`;
+}
+
+function topWeakSpots(app, n = 3) {
+  const sorted = VECTORS.map(v => {
+    const subs = SUBINDICES[v.code] || [];
+    const subWeak = subs
+      .map(([code, name]) => [code, name, app.subScores[code] ?? 0])
+      .sort((a, b) => a[2] - b[2])[0];
+    return {
+      code: v.code,
+      name: v.name,
+      score: app.vectorScores[v.code] ?? 0,
+      subWeak: subWeak ? [subWeak[0], subWeak[1]] : null,
+    };
+  }).sort((a, b) => a.score - b.score);
+  return sorted.slice(0, n);
+}
+
+/* coach: contextual to selected paragraph */
+function renderCoachPanel() {
+  const c = document.getElementById("coach");
+  if (!c) return;
+  const para = state.selectedParaEl;
+  if (!para) {
+    c.innerHTML = `
+      <div class="coach-head">Coach</div>
+      <div class="coach-empty">
+        <strong>Click any paragraph</strong> to ask the coach for suggestions.
+        The coach reads only that paragraph — cheap and focused, doesn't trigger a full re-score.
+      </div>
+    `;
+    return;
+  }
+  const metrics = (para.dataset.metrics || "").split(",").filter(Boolean);
+  const phaseEl = para.closest(".phase");
+  const phaseName = phaseEl ? phaseEl.querySelector(".phase-title").textContent : "—";
+  const labelEl = para.closest(".field")?.querySelector(".field-label");
+  const fieldName = labelEl ? labelEl.firstChild.textContent.trim() : "paragraph";
+  c.innerHTML = `
+    <div class="coach-head">Coach · selected paragraph</div>
+    <div class="coach-target">${escapeHtml(fieldName)}</div>
+    <div class="coach-meta">in ${escapeHtml(phaseName)} · drives ${metrics.length} sub-index${metrics.length === 1 ? "" : "es"}</div>
+    <div class="coach-tags">
+      ${metrics.map(m => `<span class="metric-tag">${m}</span>`).join("") || `<span class="muted" style="font-size:12px">no scoring tie</span>`}
+    </div>
+    <button class="coach-cta">
+      Suggest 3 improvements
+      <span class="cost">· local, doesn't re-score</span>
+    </button>
+  `;
+}
+
+/* ===========================================================
+   RIGHT PANEL — SCORING MODE
+   =========================================================== */
+function renderScoringPanel(app) {
+  const stale = app.dirtySinceScore > 0;
+  return `
+    <aside class="ai">
+      <div class="ai-eyebrow">
+        <span>HOSQ Score</span>
+        <span class="mode-pill">scoring</span>
+      </div>
+
+      <div class="score-block ${stale ? "is-stale" : ""}">
+        <div class="score-row">
+          <div class="score-num tabular">${app.score}<span class="of"> / 100</span></div>
+          ${renderDelta(app)}
+        </div>
+        <div class="score-meta ${stale ? "is-stale" : ""}">
+          <span class="stale-dot"></span>
+          ${stale
+            ? `<span><strong>${app.dirtySinceScore} edits</strong> since last score · ${app.lastScoreMinutesAgo} min ago</span>`
+            : `<span>Up to date · ${app.lastScoreMinutesAgo} min ago</span>`
+          }
+        </div>
+        <button class="score-btn ${app.dirtySinceScore < 5 ? "is-cooling" : ""}" id="scoreBtn">
+          <span>${stale ? "Re-score" : "Score"}</span>
+          ${app.dirtySinceScore < 5 && stale ? `<span class="recommend">· edits are minor</span>` : ""}
+        </button>
+      </div>
+
+      <div class="ai-eyebrow"><span>10 vectors</span><span class="muted" style="text-transform:none;letter-spacing:0">click to drill</span></div>
+
+      <div class="vec-list ${stale ? "is-stale" : ""}">
+        ${VECTORS.map(v => renderVecItem(v, app)).join("")}
+      </div>
+    </aside>
+  `;
+}
+
+function renderVecItem(v, app) {
+  const score = app.vectorScores[v.code] ?? 0;
+  const cls = score >= 80 ? "good" : score >= 70 ? "ok" : score >= 60 ? "warn" : "bad";
+  const expanded = state.expandedVector === v.code;
+  const subs = SUBINDICES[v.code] || [];
+  const subRows = subs.map(([code, name]) => {
+    const s = app.subScores[code] ?? 0;
+    const sCls = s >= 80 ? "good" : s >= 70 ? "ok" : s >= 60 ? "warn" : "bad";
+    const isWorst = subs.map(([c]) => app.subScores[c] ?? 0).sort((a,b)=>a-b)[0] === s;
+    return `
+      <button class="sub-row" data-sub="${code}" style="text-align:left;width:100%;background:none;border:none;padding:6px 0;cursor:pointer">
+        <span class="sub-code">${code}</span>
+        <span class="sub-name">${escapeHtml(name)}${isWorst ? ' <span class="muted" style="font-size:10px">· weakest in vector</span>' : ""}</span>
+        <span class="sub-score t-${sCls}">${s}</span>
+      </button>
+    `;
+  }).join("");
+
+  const narratives = subs
+    .map(([code]) => app.subNarratives[code] ? { code, text: app.subNarratives[code] } : null)
+    .filter(Boolean);
+  const narrativeBlock = narratives.length
+    ? narratives.map(n => `<div class="sub-narrative"><strong style="color:var(--hosq-dark)">${n.code}:</strong> ${escapeHtml(n.text)} <a class="sub-jump" data-jump="${n.code}">↳ highlight in document</a></div>`).join("")
+    : `<div class="sub-narrative muted">No specific weak-spot narrative for this vector. Open sub-indices above for detail.</div>`;
+
+  return `
+    <div class="vec-item ${expanded ? "is-expanded" : ""}" data-vec="${v.code}">
+      <div class="vec-item-row" style="cursor:pointer" data-vec-toggle="${v.code}">
+        <span class="vec-code">${v.code}</span>
+        <span class="vec-name">${escapeHtml(v.name)}</span>
+        <span class="vec-score">
+          <span class="vec-score-bar"><span class="fill q-${cls}" style="width:${score}%"></span></span>
+          <span class="num t-${cls}">${score}</span>
+        </span>
+      </div>
+      <div class="subs">
+        ${subRows}
+        ${narrativeBlock}
+      </div>
+    </div>
+  `;
+}
+
+/* ===========================================================
+   WIRING
+   =========================================================== */
+function wireOutline() {
+  document.querySelectorAll(".outline-row").forEach(row => {
+    row.onclick = () => {
+      const n = row.dataset.phase;
+      const tgt = document.getElementById("phase-" + n);
+      if (tgt) tgt.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.querySelectorAll(".outline-row").forEach(r => r.classList.remove("is-active"));
+      row.classList.add("is-active");
+    };
+  });
+}
+
+function wireDoc() {
+  document.querySelectorAll(".editable.para").forEach(p => {
+    p.addEventListener("click", () => {
+      document.querySelectorAll(".editable.para.is-selected").forEach(x => x.classList.remove("is-selected"));
+      p.classList.add("is-selected");
+      state.selectedParaEl = p;
+      if (state.mode === "writing") renderCoachPanel();
+    });
+    p.addEventListener("input", () => {
+      const app = activeApp();
+      app.dirtySinceScore = (app.dirtySinceScore || 0) + 1;
+      // light update — patch the score-block in place
+      patchStaleHeader(app);
+    });
+  });
+}
+
+function patchStaleHeader(app) {
+  const meta = document.querySelector(".score-meta");
+  if (!meta) return;
+  meta.classList.add("is-stale");
+  const span = meta.querySelector("span:last-child");
+  if (span) span.innerHTML = `<strong>${app.dirtySinceScore} edits</strong> since last score · ${app.lastScoreMinutesAgo} min ago`;
+  document.querySelector(".score-block")?.classList.add("is-stale");
+  document.querySelector(".vec-list")?.classList.add("is-stale");
+  const btn = document.getElementById("scoreBtn");
+  if (btn) {
+    btn.classList.toggle("is-cooling", app.dirtySinceScore < 5);
+    btn.querySelector("span").textContent = "Re-score";
+  }
+}
+
+function wireScoreBtn(app) {
+  const btn = document.getElementById("scoreBtn");
+  if (!btn) return;
+  btn.onclick = () => {
+    if (app.dirtySinceScore === 0) {
+      flashHint("Score is fresh — no edits since last run.");
+      return;
+    }
+    if (app.dirtySinceScore < 5) {
+      // soft-block: confirm via a flash
+      const ok = confirm("Recent score is still fresh and your edits are minor. Re-score anyway?\n\nScoring is computationally expensive — batching edits saves cost.");
+      if (!ok) return;
+    }
+    runScore(app);
+  };
+  document.getElementById("seeAllBtn")?.addEventListener("click", () => {
+    state.mode = "scoring";
+    document.body.classList.add("mode-scoring");
+    document.body.classList.remove("mode-writing");
+    renderAll();
+    flashHint("Switched to Scoring mode — all 10 vectors visible.");
+  });
+}
+
+function runScore(app) {
+  // mock animation: clear stale state, nudge score
+  const drift = Math.round((Math.random() - 0.4) * 4);
+  app.prevScore = app.score;
+  app.score = Math.max(0, Math.min(100, app.score + drift));
+  app.dirtySinceScore = 0;
+  app.lastScoreMinutesAgo = 0;
+  // tiny per-vector wobble to feel real
+  for (const v of VECTORS) {
+    app.vectorScores[v.code] = Math.max(0, Math.min(100, (app.vectorScores[v.code] ?? 0) + Math.round((Math.random() - 0.4) * 3)));
+  }
+  flashHint("Re-scored. Cost charged.");
+  renderAll();
+}
+
+function wireScoringPanel(app) {
+  document.querySelectorAll("[data-vec-toggle]").forEach(el => {
+    el.onclick = () => {
+      const v = el.dataset.vecToggle;
+      state.expandedVector = state.expandedVector === v ? null : v;
+      // also highlight all paragraphs that drive this vector's subindices
+      const sub = SUBINDICES[v] || [];
+      const codes = sub.map(([c]) => c);
+      state.highlightedMetrics = new Set(codes);
+      applyMetricHighlights();
+      renderShell(); // re-render to expand the vector
+    };
+  });
+  document.querySelectorAll("[data-sub]").forEach(el => {
+    el.onclick = (e) => {
+      e.stopPropagation();
+      const code = el.dataset.sub;
+      state.highlightedMetrics = new Set([code]);
+      applyMetricHighlights();
+      flashHint(`Highlighted paragraphs driving ${code}.`);
+    };
+  });
+  document.querySelectorAll("[data-jump]").forEach(el => {
+    el.onclick = (e) => {
+      e.stopPropagation();
+      const code = el.dataset.jump;
+      state.highlightedMetrics = new Set([code]);
+      applyMetricHighlights();
+      // scroll to first match
+      const first = document.querySelector(`.editable.para[data-metrics*="${code}"]`);
+      if (first) first.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
+  });
+}
+
+function applyMetricHighlights() {
+  document.querySelectorAll(".editable.para").forEach(p => {
+    const codes = (p.dataset.metrics || "").split(",").filter(Boolean);
+    const hit = codes.some(c => state.highlightedMetrics.has(c));
+    p.classList.toggle("is-related", hit);
+  });
+}
+
+/* ===========================================================
+   EMPTY / UPLOAD STATE
+   =========================================================== */
+function renderEmptyShell() {
+  return `
+    <aside class="outline">
+      <div class="outline-head">Outline</div>
+      <div class="outline-list">
+        ${Array.from({length: 18}).map((_, i) => `
+          <div class="outline-row" style="opacity:.45;cursor:default">
+            <span class="num">${String(i+1).padStart(2,"0")}</span>
+            <span class="label muted">awaiting input…</span>
+            <span class="dot-state empty"></span>
+          </div>
+        `).join("")}
+      </div>
+      <div class="outline-foot">
+        <span class="muted" style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;">Completion</span>
+        <span class="progress-num">0<span style="font-size:13px;color:var(--hosq-ink-2);font-weight:500"> / 100%</span></span>
+        <div class="progress-bar"></div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="upload-wrap">
+        <div class="upload-card">
+          <div class="upload-eyebrow">New application</div>
+          <h1 class="upload-title">Drop in a project, AI structures it.</h1>
+          <p class="upload-sub">Upload a PDF or paste essay text. AI parses it into the v7 schema (18 phases, 86 fields) and opens an editable document — you stay in control of the prose, the structure stays locked.</p>
+
+          <div class="dropzone" id="dropzone">
+            <button class="dropzone-cta">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              Choose PDF or DOCX
+            </button>
+            <div class="dropzone-meta">…or drag &amp; drop a file. Up to 50 MB. Russian or English.</div>
+          </div>
+
+          <div class="upload-divider">or paste text</div>
+
+          <textarea class="upload-textarea" placeholder="Paste the project essay here…&#10;&#10;Anything from a one-paragraph pitch to a 5,000-word brief works. AI will fill what it can extract; everything else becomes a placeholder you can fill in by hand."></textarea>
+
+          <div class="upload-actions">
+            <button class="btn-ghost" id="cancelNew">Cancel</button>
+            <button class="btn-primary" id="parseNew">Parse with AI</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="ai">
+      <div class="ai-eyebrow"><span>AI</span><span class="mode-pill">idle</span></div>
+      <div class="coach" style="margin-top:0">
+        <div class="coach-head">Waiting for input</div>
+        <div class="coach-empty">
+          <strong>Drop or paste a project</strong> on the left.
+          AI will parse it into the schema, then this panel becomes your scoring + coaching companion.
+        </div>
+      </div>
+      <div class="coach" style="margin-top:16px;background:transparent;border:1px dashed var(--hosq-line-2)">
+        <div class="coach-head">Cost note</div>
+        <div class="coach-empty" style="font-size:12px">
+          Initial parse uses a single AI call. Re-scoring costs more — batch your edits before pressing <strong>Score</strong>.
+        </div>
+      </div>
+    </aside>
+  `;
+}
+
+function wireEmptyShell() {
+  document.getElementById("cancelNew")?.addEventListener("click", () => {
+    state.activeAppId = NOTATIONS.id;
+    renderAll();
+  });
+  document.getElementById("parseNew")?.addEventListener("click", () => {
+    flashHint("Parsing… (mock — opening sample application)");
+    setTimeout(() => {
+      state.activeAppId = NOTATIONS.id;
+      renderAll();
+    }, 600);
+  });
+  const dz = document.getElementById("dropzone");
+  if (dz) {
+    ["dragenter","dragover"].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.add("is-drag"); }));
+    ["dragleave","drop"].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.remove("is-drag"); }));
+    dz.addEventListener("drop", () => {
+      flashHint("File received (mock — opening sample application)");
+      setTimeout(() => { state.activeAppId = NOTATIONS.id; renderAll(); }, 600);
+    });
+  }
+}
+
+/* ===========================================================
+   COMMAND PALETTE STUB
+   =========================================================== */
+function wireCmdK() {
+  const overlay = document.getElementById("cmdkOverlay");
+  const open = () => { overlay.classList.add("is-open"); overlay.querySelector("input").focus(); };
+  const close = () => overlay.classList.remove("is-open");
+  document.getElementById("cmdkBtn").addEventListener("click", open);
+  overlay.addEventListener("click", close);
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); open(); }
+    if (e.key === "Escape") close();
+  });
+}
+
+/* ===========================================================
+   UTILS
+   =========================================================== */
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
+let hintTimer = null;
+function flashHint(text) {
+  const el = document.getElementById("hintStrip");
+  el.textContent = text;
+  el.classList.add("is-visible");
+  if (hintTimer) clearTimeout(hintTimer);
+  hintTimer = setTimeout(() => el.classList.remove("is-visible"), 2400);
+}
+
+/* ===========================================================
+   BOOT
+   =========================================================== */
+function renderAll() {
+  renderTabs();
+  renderModeToggle();
+  renderShell();
+  positionGlider();
+}
+
+window.addEventListener("load", () => {
+  renderAll();
+  wireCmdK();
+  flashHint("Click anywhere — try the Writing/Scoring toggle, or open a paragraph.");
+});
+window.addEventListener("resize", positionGlider);
+</script>
+</body>
+</html>
