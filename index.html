@@ -81,8 +81,9 @@ input,textarea { font-family:inherit; }
 .shell { display:grid; grid-template-columns:var(--rail-w) minmax(0,1fr) var(--right-w); min-height:calc(100vh - var(--topbar-h)); transition:grid-template-columns .25s ease; }
 body.mode-scoring { --right-w:440px; }
 body.outline-pinned { --rail-w:var(--rail-w-open); }
-body.view-chat { --rail-w:0px; --right-w:340px; }
+body.view-chat .shell { grid-template-columns:minmax(0,1fr) 340px; }
 body.view-chat .outline { display:none; }
+body.view-upload .shell { grid-template-columns:minmax(0,1fr); }
 
 /* ===== stage badge ===== */
 .stage-badge {
@@ -1342,6 +1343,7 @@ function renderShell() {
   const shell = document.getElementById("shell");
   const app = activeApp();
   document.body.classList.toggle("view-chat", !!app.isChat);
+  document.body.classList.toggle("view-upload", !!app.isNew);
   if (app.isNew) { shell.innerHTML = renderEmptyShell(); wireEmptyShell(); return; }
   if (app.isChat) { shell.innerHTML = renderChatShell(app); wireChatShell(app); return; }
   const phases = notationsContent();
